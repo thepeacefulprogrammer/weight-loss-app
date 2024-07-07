@@ -37,18 +37,18 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 		alignItems: "center",
 		padding: 10,
-		backgroundColor: "#ffeb3b",
-		borderRadius: 8,
+		backgroundColor: "#fff",
+		borderRadius: 10,
 		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
 		shadowRadius: 4,
-		elevation: 2,
+		elevation: 3,
 	},
 	countdownText: {
 		fontSize: 24,
 		fontWeight: "bold",
-		color: "red",
+		color: "#007AFF",
 	},
 });
 
