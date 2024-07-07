@@ -15,10 +15,6 @@ export default function CalorieInput({ navigation }: { navigation: any }) {
 
 	const handleMealSelection = (type: string, size: string) => {
 		const now = new Date();
-		if (nextAllowedTime && now < nextAllowedTime) {
-			Alert.alert("Wait", "You need to wait before adding another meal.");
-			return;
-		}
 
 		const calories =
 			mealCalories[type as keyof typeof mealCalories][size as keyof typeof mealCalories.Breakfast];
