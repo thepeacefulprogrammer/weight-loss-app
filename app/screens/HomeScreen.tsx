@@ -7,6 +7,7 @@ import TotalCalories from "../components/TotalCalories";
 export default function HomeScreen({ navigation }: { navigation: any }) {
 	const [totalCalories, setTotalCalories] = useState<number>(0);
 	const [nextAllowedTime, setNextAllowedTime] = useState<Date | null>(null);
+	const dailyCalorieGoal = 2000; // Set your daily calorie goal here
 
 	const handleSave = (calories: number, nextTime: Date) => {
 		setTotalCalories(calories);
@@ -17,7 +18,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 		<View style={styles.container}>
 			<CountdownTimer nextAllowedTime={nextAllowedTime} />
 			<CalorieInput onSave={handleSave} navigation={navigation} />
-			<TotalCalories totalCalories={totalCalories} />
+			<TotalCalories totalCalories={totalCalories} dailyCalorieGoal={dailyCalorieGoal} />
 		</View>
 	);
 }
