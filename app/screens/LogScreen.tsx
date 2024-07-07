@@ -1,21 +1,41 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { Ionicons, FontAwesome5, Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useCalorieContext } from "../contexts/CalorieContext";
 
 interface Entry {
-	calories: string;
+	type: string;
+	size: string;
+	icon: { name: string; package: string };
 	time: string;
 }
 
 const LogScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const { entries, deleteEntry } = useCalorieContext();
 
+	const renderIcon = (icon: { name: string; package: string }) => {
+		switch (icon.package) {
+			case "Ionicons":
+				return <Ionicons name={icon.name as any} size={32} color="#007AFF" />;
+			case "FontAwesome5":
+				return <FontAwesome5 name={icon.name as any} size={32} color="#007AFF" />;
+			case "Entypo":
+				return <Entypo name={icon.name as any} size={32} color="#007AFF" />;
+			case "MaterialCommunityIcons":
+				return <MaterialCommunityIcons name={icon.name as any} size={32} color="#007AFF" />;
+			default:
+				return null;
+		}
+	};
+
 	const renderItem = ({ item, index }: { item: Entry; index: number }) => (
 		<View style={styles.item}>
 			<View style={styles.itemTextContainer}>
-				<Text style={styles.itemText}>Calories: {item.calories}</Text>
+				<Text style={styles.itemText}>Meal: {item.type}</Text>
+				<Text style={styles.itemText}>Size: {item.size}</Text>
 				<Text style={styles.itemText}>Time: {new Date(item.time).toLocaleString()}</Text>
 			</View>
+			{renderIcon(item.icon)}
 			<TouchableOpacity onPress={() => handleDeleteEntry(index)} style={styles.deleteButton}>
 				<Text style={styles.deleteButtonText}>DELETE</Text>
 			</TouchableOpacity>
