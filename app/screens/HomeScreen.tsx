@@ -1,12 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+
+interface Entry {
+	calories: string;
+	time: string;
+}
 
 export default function HomeScreen({ navigation }: { navigation: any }) {
 	const [calories, setCalories] = useState<string>("");
 	const [time, setTime] = useState<Date | null>(new Date());
 	const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+	const [totalCalories, setTotalCalories] = useState<number>(0);
+
+	useEffect(() => {
+		const calculateTotalCalories = async () => {
+			try {
+				const storedEntries = JSON.parse(
+					(await AsyncStorage.getItem("entries")) || "[]"
+				) as Entry[];
+				const today = new Date();
+				const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+				const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+				const todayEntries = storedEntries.filter((entry) => {
+					const entryTime = new Date(entry.time);
+					return entryTime >= startOfDay && entryTime < endOfDay;
+				});
+				const total = todayEntries.reduce((sum, entry) => sum + Number(entry.calories), 0);
+				setTotalCalories(total);
+			} catch (error) {
+				console.error("Error calculating total calories:", error);
+			}
+		};
+
+		calculateTotalCalories();
+	}, []);
 
 	const showDatePicker = () => {
 		setDatePickerVisibility(true);
@@ -34,13 +63,24 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 		}
 
 		if (time) {
-			const newEntry = { calories: caloriesNumber, time: time.toISOString() };
+			const newEntry = { calories: caloriesNumber.toString(), time: time.toISOString() };
 			try {
-				const existingEntries = JSON.parse((await AsyncStorage.getItem("entries")) || "[]");
+				const existingEntries = JSON.parse(
+					(await AsyncStorage.getItem("entries")) || "[]"
+				) as Entry[];
 				existingEntries.push(newEntry);
 				await AsyncStorage.setItem("entries", JSON.stringify(existingEntries));
 				setCalories("");
 				setTime(new Date());
+				// Recalculate total calories after adding new entry
+				const startOfDay = new Date(time.getFullYear(), time.getMonth(), time.getDate());
+				const endOfDay = new Date(time.getFullYear(), time.getMonth(), time.getDate() + 1);
+				const todayEntries = existingEntries.filter((entry) => {
+					const entryTime = new Date(entry.time);
+					return entryTime >= startOfDay && entryTime < endOfDay;
+				});
+				const total = todayEntries.reduce((sum, entry) => sum + Number(entry.calories), 0);
+				setTotalCalories(total);
 			} catch (error) {
 				console.error("Error saving entry:", error);
 			}
@@ -71,6 +111,9 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 			/>
 			<Button title="Save Entry" onPress={saveEntry} />
 			<Button title="View Log" onPress={() => navigation.navigate("Log")} />
+			<View style={styles.totalCaloriesContainer}>
+				<Text style={styles.totalCaloriesText}>Total Calories for Today: {totalCalories}</Text>
+			</View>
 		</View>
 	);
 }
@@ -95,5 +138,13 @@ const styles = StyleSheet.create({
 		borderColor: "gray",
 		borderWidth: 1,
 		marginBottom: 12,
+	},
+	totalCaloriesContainer: {
+		marginTop: 20,
+		alignItems: "center",
+	},
+	totalCaloriesText: {
+		fontSize: 18,
+		fontWeight: "bold",
 	},
 });
