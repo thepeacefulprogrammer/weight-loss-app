@@ -13,6 +13,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 	const [time, setTime] = useState<Date | null>(new Date());
 	const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 	const [totalCalories, setTotalCalories] = useState<number>(0);
+	const [nextAllowedTime, setNextAllowedTime] = useState<Date | null>(null);
+	const [countdown, setCountdown] = useState<string>("");
 
 	useEffect(() => {
 		const calculateTotalCalories = async () => {
@@ -29,6 +31,12 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 				});
 				const total = todayEntries.reduce((sum, entry) => sum + Number(entry.calories), 0);
 				setTotalCalories(total);
+
+				if (storedEntries.length > 0) {
+					const lastEntryTime = new Date(storedEntries[storedEntries.length - 1].time);
+					const nextTime = new Date(lastEntryTime.getTime() + 3 * 60 * 60 * 1000); // Add 3 hours to last entry time
+					setNextAllowedTime(nextTime);
+				}
 			} catch (error) {
 				console.error("Error calculating total calories:", error);
 			}
@@ -36,6 +44,25 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
 		calculateTotalCalories();
 	}, []);
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			if (nextAllowedTime) {
+				const now = new Date().getTime();
+				const timeDifference = nextAllowedTime.getTime() - now;
+				if (timeDifference > 0) {
+					const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+					const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+					const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+					setCountdown(`${hours}h ${minutes}m ${seconds}s`);
+				} else {
+					setCountdown("You can eat now!");
+				}
+			}
+		}, 1000);
+
+		return () => clearInterval(interval);
+	}, [nextAllowedTime]);
 
 	const showDatePicker = () => {
 		setDatePickerVisibility(true);
@@ -72,6 +99,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 				await AsyncStorage.setItem("entries", JSON.stringify(existingEntries));
 				setCalories("");
 				setTime(new Date());
+
 				// Recalculate total calories after adding new entry
 				const startOfDay = new Date(time.getFullYear(), time.getMonth(), time.getDate());
 				const endOfDay = new Date(time.getFullYear(), time.getMonth(), time.getDate() + 1);
@@ -81,6 +109,10 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 				});
 				const total = todayEntries.reduce((sum, entry) => sum + Number(entry.calories), 0);
 				setTotalCalories(total);
+
+				// Set next allowed eating time
+				const nextTime = new Date(time.getTime() + 3 * 60 * 60 * 1000); // Add 3 hours to current time
+				setNextAllowedTime(nextTime);
 			} catch (error) {
 				console.error("Error saving entry:", error);
 			}
@@ -115,6 +147,9 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 			</View>
 			<View style={styles.totalCaloriesContainer}>
 				<Text style={styles.totalCaloriesText}>Calories Consumed Today: {totalCalories}</Text>
+			</View>
+			<View style={styles.countdownContainer}>
+				<Text style={styles.countdownText}>{countdown}</Text>
 			</View>
 		</View>
 	);
@@ -160,5 +195,14 @@ const styles = StyleSheet.create({
 	totalCaloriesText: {
 		fontSize: 18,
 		fontWeight: "bold",
+	},
+	countdownContainer: {
+		marginTop: 20,
+		alignItems: "center",
+	},
+	countdownText: {
+		fontSize: 18,
+		fontWeight: "bold",
+		color: "red",
 	},
 });
