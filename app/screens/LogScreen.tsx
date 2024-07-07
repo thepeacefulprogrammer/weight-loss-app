@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, StyleSheet, Button, Alert } from "react-native";
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Entry {
@@ -43,9 +43,13 @@ export default function LogScreen() {
 
 	const renderItem = ({ item, index }: { item: Entry; index: number }) => (
 		<View style={styles.item}>
-			<Text>Calories: {item.calories}</Text>
-			<Text>Time: {new Date(item.time).toLocaleString()}</Text>
-			<Button title="Delete" onPress={() => deleteEntry(index)} color="red" />
+			<View style={styles.itemTextContainer}>
+				<Text style={styles.itemText}>Calories: {item.calories}</Text>
+				<Text style={styles.itemText}>Time: {new Date(item.time).toLocaleString()}</Text>
+			</View>
+			<TouchableOpacity onPress={() => deleteEntry(index)} style={styles.deleteButton}>
+				<Text style={styles.deleteButtonText}>DELETE</Text>
+			</TouchableOpacity>
 		</View>
 	);
 
@@ -55,6 +59,7 @@ export default function LogScreen() {
 				data={entries}
 				renderItem={renderItem}
 				keyExtractor={(_, index) => index.toString()}
+				ItemSeparatorComponent={() => <View style={styles.separator} />}
 			/>
 		</View>
 	);
@@ -64,13 +69,38 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		padding: 16,
+		backgroundColor: "#f9f9f9",
 	},
 	item: {
-		padding: 16,
-		borderBottomWidth: 1,
-		borderBottomColor: "#ccc",
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
+		padding: 16,
+		backgroundColor: "#ffffff",
+		borderRadius: 8,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 2,
+	},
+	itemTextContainer: {
+		flex: 1,
+	},
+	itemText: {
+		fontSize: 16,
+		color: "#333",
+	},
+	deleteButton: {
+		backgroundColor: "#ff3b30",
+		padding: 10,
+		borderRadius: 8,
+	},
+	deleteButtonText: {
+		color: "#fff",
+		fontWeight: "bold",
+	},
+	separator: {
+		height: 10,
 	},
 });
