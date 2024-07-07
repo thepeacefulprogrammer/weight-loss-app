@@ -91,14 +91,14 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
 	return (
 		<View style={styles.container}>
-			<Text>Enter Calories:</Text>
+			<Text style={styles.label}>Enter Calories:</Text>
 			<TextInput
 				style={styles.input}
 				value={calories}
 				onChangeText={setCalories}
 				keyboardType="numeric"
 			/>
-			<Text>Select Time:</Text>
+			<Text style={styles.label}>Select Time:</Text>
 			<TouchableOpacity onPress={showDatePicker} style={styles.dateButton}>
 				<Text>{time ? time.toLocaleString() : "Select Time"}</Text>
 			</TouchableOpacity>
@@ -109,10 +109,12 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 				onConfirm={handleConfirm}
 				onCancel={hideDatePicker}
 			/>
-			<Button title="Save Entry" onPress={saveEntry} />
-			<Button title="View Log" onPress={() => navigation.navigate("Log")} />
+			<View style={styles.buttonContainer}>
+				<Button title="Save Entry" onPress={saveEntry} />
+				<Button title="View Log" onPress={() => navigation.navigate("Log")} />
+			</View>
 			<View style={styles.totalCaloriesContainer}>
-				<Text style={styles.totalCaloriesText}>Total Calories for Today: {totalCalories}</Text>
+				<Text style={styles.totalCaloriesText}>Calories Consumed Today: {totalCalories}</Text>
 			</View>
 		</View>
 	);
@@ -123,6 +125,11 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "center",
 		padding: 16,
+		backgroundColor: "#f9f9f9",
+	},
+	label: {
+		fontSize: 16,
+		marginBottom: 8,
 	},
 	input: {
 		height: 40,
@@ -130,6 +137,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		marginBottom: 12,
 		paddingHorizontal: 8,
+		backgroundColor: "#fff",
 	},
 	dateButton: {
 		height: 40,
@@ -138,6 +146,12 @@ const styles = StyleSheet.create({
 		borderColor: "gray",
 		borderWidth: 1,
 		marginBottom: 12,
+		backgroundColor: "#fff",
+	},
+	buttonContainer: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		marginTop: 16,
 	},
 	totalCaloriesContainer: {
 		marginTop: 20,
