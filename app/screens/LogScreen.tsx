@@ -7,7 +7,7 @@ interface Entry {
 	time: string;
 }
 
-export default function LogScreen({ navigation }: { navigation: any }) {
+const LogScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const { entries, deleteEntry } = useCalorieContext();
 
 	const renderItem = ({ item, index }: { item: Entry; index: number }) => (
@@ -43,7 +43,7 @@ export default function LogScreen({ navigation }: { navigation: any }) {
 			/>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	container: {
@@ -84,3 +84,5 @@ const styles = StyleSheet.create({
 		height: 10,
 	},
 });
+
+export default LogScreen;
