@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, Button, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Entry {
@@ -22,10 +22,30 @@ export default function LogScreen() {
 		loadEntries();
 	}, []);
 
-	const renderItem = ({ item }: { item: Entry }) => (
+	const deleteEntry = async (index: number) => {
+		Alert.alert("Delete Entry", "Are you sure you want to delete this entry?", [
+			{ text: "Cancel", style: "cancel" },
+			{
+				text: "Delete",
+				style: "destructive",
+				onPress: async () => {
+					try {
+						const updatedEntries = entries.filter((_, i) => i !== index);
+						await AsyncStorage.setItem("entries", JSON.stringify(updatedEntries));
+						setEntries(updatedEntries);
+					} catch (error) {
+						console.error("Error deleting entry:", error);
+					}
+				},
+			},
+		]);
+	};
+
+	const renderItem = ({ item, index }: { item: Entry; index: number }) => (
 		<View style={styles.item}>
 			<Text>Calories: {item.calories}</Text>
 			<Text>Time: {new Date(item.time).toLocaleString()}</Text>
+			<Button title="Delete" onPress={() => deleteEntry(index)} color="red" />
 		</View>
 	);
 
@@ -49,5 +69,8 @@ const styles = StyleSheet.create({
 		padding: 16,
 		borderBottomWidth: 1,
 		borderBottomColor: "#ccc",
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
 	},
 });
