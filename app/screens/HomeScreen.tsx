@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
@@ -22,8 +22,19 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 	};
 
 	const saveEntry = async () => {
+		if (!calories) {
+			Alert.alert("Error", "Please enter the number of calories.");
+			return;
+		}
+
+		const caloriesNumber = Number(calories);
+		if (isNaN(caloriesNumber) || caloriesNumber <= 0) {
+			Alert.alert("Error", "Please enter a valid number of calories.");
+			return;
+		}
+
 		if (time) {
-			const newEntry = { calories, time: time.toISOString() };
+			const newEntry = { calories: caloriesNumber, time: time.toISOString() };
 			try {
 				const existingEntries = JSON.parse((await AsyncStorage.getItem("entries")) || "[]");
 				existingEntries.push(newEntry);
@@ -34,7 +45,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 				console.error("Error saving entry:", error);
 			}
 		} else {
-			alert("Please select a time.");
+			Alert.alert("Error", "Please select a time.");
 		}
 	};
 
