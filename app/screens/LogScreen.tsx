@@ -1,45 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useCalorieContext } from "../contexts/CalorieContext";
 
 interface Entry {
 	calories: string;
 	time: string;
 }
 
-export default function LogScreen() {
-	const [entries, setEntries] = useState<Entry[]>([]);
-
-	useEffect(() => {
-		const loadEntries = async () => {
-			try {
-				const storedEntries = JSON.parse((await AsyncStorage.getItem("entries")) || "[]");
-				setEntries(storedEntries);
-			} catch (error) {
-				console.error("Error loading entries:", error);
-			}
-		};
-		loadEntries();
-	}, []);
-
-	const deleteEntry = async (index: number) => {
-		Alert.alert("Delete Entry", "Are you sure you want to delete this entry?", [
-			{ text: "Cancel", style: "cancel" },
-			{
-				text: "Delete",
-				style: "destructive",
-				onPress: async () => {
-					try {
-						const updatedEntries = entries.filter((_, i) => i !== index);
-						await AsyncStorage.setItem("entries", JSON.stringify(updatedEntries));
-						setEntries(updatedEntries);
-					} catch (error) {
-						console.error("Error deleting entry:", error);
-					}
-				},
-			},
-		]);
-	};
+export default function LogScreen({ navigation }: { navigation: any }) {
+	const { entries, deleteEntry } = useCalorieContext();
 
 	const renderItem = ({ item, index }: { item: Entry; index: number }) => (
 		<View style={styles.item}>
@@ -47,11 +16,22 @@ export default function LogScreen() {
 				<Text style={styles.itemText}>Calories: {item.calories}</Text>
 				<Text style={styles.itemText}>Time: {new Date(item.time).toLocaleString()}</Text>
 			</View>
-			<TouchableOpacity onPress={() => deleteEntry(index)} style={styles.deleteButton}>
+			<TouchableOpacity onPress={() => handleDeleteEntry(index)} style={styles.deleteButton}>
 				<Text style={styles.deleteButtonText}>DELETE</Text>
 			</TouchableOpacity>
 		</View>
 	);
+
+	const handleDeleteEntry = (index: number) => {
+		Alert.alert("Delete Entry", "Are you sure you want to delete this entry?", [
+			{ text: "Cancel", style: "cancel" },
+			{
+				text: "Delete",
+				style: "destructive",
+				onPress: () => deleteEntry(index),
+			},
+		]);
+	};
 
 	return (
 		<View style={styles.container}>

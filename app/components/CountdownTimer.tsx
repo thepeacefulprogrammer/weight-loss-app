@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useCalorieContext } from "../contexts/CalorieContext";
 
-interface CountdownTimerProps {
-	nextAllowedTime: Date | null;
-}
-
-const CountdownTimer: React.FC<CountdownTimerProps> = ({ nextAllowedTime = null }) => {
+const CountdownTimer: React.FC = () => {
+	const { nextAllowedTime } = useCalorieContext();
 	const [countdown, setCountdown] = useState<string>("");
 
 	useEffect(() => {

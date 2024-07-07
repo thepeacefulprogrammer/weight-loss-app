@@ -1,21 +1,19 @@
 import React from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { CalorieProvider } from "./contexts/CalorieContext";
 import HomeScreen from "./screens/HomeScreen";
 import LogScreen from "./screens/LogScreen";
 
 const Stack = createStackNavigator();
 
-function App() {
+export default function App() {
 	return (
-		<Stack.Navigator initialRouteName="Home">
-			<Stack.Screen name="Home" component={HomeScreen} />
-			<Stack.Screen name="Log" component={LogScreen} />
-		</Stack.Navigator>
+		<CalorieProvider>
+			<Stack.Navigator initialRouteName="Home">
+				<Stack.Screen name="Home" component={HomeScreen} />
+				<Stack.Screen name="Log" component={LogScreen} />
+			</Stack.Navigator>
+		</CalorieProvider>
 	);
-}
-
-export default function Index() {
-	return <App />;
 }
