@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useCalorieContext } from "../contexts/CalorieContext";
-
 const CountdownTimer: React.FC = () => {
-	const { nextAllowedTime } = useCalorieContext();
+	const { nextAllowedTime, nextMealType } = useCalorieContext() as {
+		nextAllowedTime: Date;
+		nextMealType: string;
+	};
 	const [countdown, setCountdown] = useState<string>("");
 
 	useEffect(() => {
@@ -28,6 +30,7 @@ const CountdownTimer: React.FC = () => {
 	return (
 		<View style={styles.countdownContainer}>
 			<Text style={styles.countdownText}>{countdown}</Text>
+			{nextMealType && <Text style={styles.mealTypeText}>Next: {nextMealType}</Text>}
 		</View>
 	);
 };
@@ -49,6 +52,11 @@ const styles = StyleSheet.create({
 		fontSize: 24,
 		fontWeight: "bold",
 		color: "#007AFF",
+	},
+	mealTypeText: {
+		fontSize: 18,
+		color: "#007AFF",
+		marginTop: 10,
 	},
 });
 

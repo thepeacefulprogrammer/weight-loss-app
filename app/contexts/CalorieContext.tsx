@@ -13,13 +13,23 @@ interface CalorieContextType {
 	addEntry: (entry: Entry) => void;
 	deleteEntry: (index: number) => void;
 	nextAllowedTime: Date | null;
+	nextMealType: string | null;
 }
 
-const CalorieContext = createContext<CalorieContextType | undefined>(undefined);
+const CalorieContext = createContext<CalorieContextType | null>(null);
+
+export const useCalorieContext = () => {
+	const context = useContext(CalorieContext);
+	if (context === null) {
+		throw new Error("useCalorieContext must be used within a CalorieProvider");
+	}
+	return context;
+};
 
 export const CalorieProvider = ({ children }: { children: ReactNode }) => {
 	const [entries, setEntries] = useState<Entry[]>([]);
 	const [nextAllowedTime, setNextAllowedTime] = useState<Date | null>(null);
+	const [nextMealType, setNextMealType] = useState<string | null>(null);
 
 	useEffect(() => {
 		const loadEntries = async () => {
@@ -40,13 +50,34 @@ export const CalorieProvider = ({ children }: { children: ReactNode }) => {
 		loadEntries();
 	}, []);
 
+	const calculateNextMealTime = (entries: Entry[]): { time: Date; type: string } => {
+		const now = new Date();
+		const mealTimes = ["Breakfast", "Snack", "Lunch", "Snack", "Dinner"];
+		const lastEntry = entries[entries.length - 1];
+		const lastMealIndex = mealTimes.indexOf(lastEntry.type);
+		let nextMealIndex = (lastMealIndex + 1) % mealTimes.length;
+
+		// Gradually adjust snack times
+		if (lastEntry.type === "Snack") {
+			const lastMealTime = new Date(lastEntry.time);
+			const timeSinceLastMeal = now.getTime() - lastMealTime.getTime();
+			const adjustment = Math.min(timeSinceLastMeal / (1000 * 60 * 60 * 24), 1) * 5 * 60 * 1000; // Adjust by up to 5 minutes per day
+			now.setTime(now.getTime() + adjustment);
+		}
+
+		// Set next meal time
+		const nextMealTime = new Date(now.getTime() + 3 * 60 * 60 * 1000); // Default to 3 hours later
+		return { time: nextMealTime, type: mealTimes[nextMealIndex] };
+	};
+
 	const addEntry = async (entry: Entry) => {
 		try {
 			const updatedEntries = [...entries, entry];
 			await AsyncStorage.setItem("entries", JSON.stringify(updatedEntries));
 			setEntries(updatedEntries);
-			const nextTime = new Date(new Date(entry.time).getTime() + 3 * 60 * 60 * 1000); // Add 3 hours to current time
-			setNextAllowedTime(nextTime);
+			const { time, type } = calculateNextMealTime(updatedEntries);
+			setNextAllowedTime(time);
+			setNextMealType(type);
 		} catch (error) {
 			console.error("Error adding entry:", error);
 		}
@@ -72,21 +103,14 @@ export const CalorieProvider = ({ children }: { children: ReactNode }) => {
 	return (
 		<CalorieContext.Provider
 			value={{
-				entries,
-				addEntry,
-				deleteEntry,
-				nextAllowedTime,
+				entries: entries,
+				addEntry: addEntry,
+				deleteEntry: deleteEntry,
+				nextAllowedTime: nextAllowedTime,
+				nextMealType,
 			}}
 		>
 			{children}
 		</CalorieContext.Provider>
 	);
-};
-
-export const useCalorieContext = () => {
-	const context = useContext(CalorieContext);
-	if (!context) {
-		throw new Error("useCalorieContext must be used within a CalorieProvider");
-	}
-	return context;
 };

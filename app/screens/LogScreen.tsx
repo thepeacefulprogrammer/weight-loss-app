@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useCallback } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons, FontAwesome5, Entypo, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useCalorieContext } from "../contexts/CalorieContext";
+import { Swipeable } from "react-native-gesture-handler";
 
 interface Entry {
 	type: string;
@@ -13,7 +14,11 @@ interface Entry {
 const LogScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 	const { entries, deleteEntry } = useCalorieContext();
 
-	const renderIcon = (icon: { name: string; package: string }) => {
+	const renderIcon = (icon?: { name: string; package: string }) => {
+		if (!icon || !icon.package || !icon.name) {
+			return <Ionicons name="help-circle-outline" size={32} color="#007AFF" />;
+		}
+
 		switch (icon.package) {
 			case "Ionicons":
 				return <Ionicons name={icon.name as any} size={32} color="#007AFF" />;
@@ -24,22 +29,34 @@ const LogScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			case "MaterialCommunityIcons":
 				return <MaterialCommunityIcons name={icon.name as any} size={32} color="#007AFF" />;
 			default:
-				return null;
+				return <Ionicons name="help-circle-outline" size={32} color="#007AFF" />;
 		}
 	};
 
+	const renderRightActions = (index: number) => (
+		<TouchableOpacity onPress={() => handleDeleteEntry(index)} style={styles.deleteButton}>
+			<Ionicons name="trash-outline" size={24} color="#fff" />
+		</TouchableOpacity>
+	);
+
 	const renderItem = ({ item, index }: { item: Entry; index: number }) => (
-		<View style={styles.item}>
-			<View style={styles.itemTextContainer}>
-				<Text style={styles.itemText}>Meal: {item.type}</Text>
-				<Text style={styles.itemText}>Size: {item.size}</Text>
-				<Text style={styles.itemText}>Time: {new Date(item.time).toLocaleString()}</Text>
+		<Swipeable
+			ref={(ref) => (swipeableRefs.current[index] = ref)}
+			renderRightActions={() => renderRightActions(index)}
+			onSwipeableOpen={() => {
+				swipeableRefs.current.forEach((ref, idx) => {
+					if (idx !== index) ref?.close();
+				});
+			}}
+		>
+			<View style={styles.item}>
+				<View style={styles.itemTextContainer}>
+					<Text style={styles.itemText}>{`${item.size} ${item.type}`}</Text>
+					<Text style={styles.itemText}>Time: {new Date(item.time).toLocaleString()}</Text>
+				</View>
+				{renderIcon(item.icon)}
 			</View>
-			{renderIcon(item.icon)}
-			<TouchableOpacity onPress={() => handleDeleteEntry(index)} style={styles.deleteButton}>
-				<Text style={styles.deleteButtonText}>DELETE</Text>
-			</TouchableOpacity>
-		</View>
+		</Swipeable>
 	);
 
 	const handleDeleteEntry = (index: number) => {
@@ -48,10 +65,18 @@ const LogScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 			{
 				text: "Delete",
 				style: "destructive",
-				onPress: () => deleteEntry(index),
+				onPress: () => {
+					deleteEntry(index);
+					closeAllSwipeables();
+				},
 			},
 		]);
 	};
+
+	const swipeableRefs = useRef<(Swipeable | null)[]>([]);
+	const closeAllSwipeables = useCallback(() => {
+		swipeableRefs.current.forEach((ref) => ref?.close());
+	}, []);
 
 	return (
 		<View style={styles.container}>
@@ -93,12 +118,16 @@ const styles = StyleSheet.create({
 	},
 	deleteButton: {
 		backgroundColor: "#ff3b30",
-		padding: 10,
-		borderRadius: 8,
+		justifyContent: "center",
+		alignItems: "center",
+		width: 80,
+		height: "100%",
 	},
 	deleteButtonText: {
 		color: "#fff",
 		fontWeight: "bold",
+		fontSize: 12,
+		marginTop: 4,
 	},
 	separator: {
 		height: 10,
